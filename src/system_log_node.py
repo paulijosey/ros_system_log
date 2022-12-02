@@ -20,10 +20,12 @@ def systemLog():
     # TODO: make those ROS variables? 
     proc_vins = None
     proc_pose = None
-    proc_optflow = None
+    proc_featureHandling = None
     proc_vins_name = 'vins_estimator'
     proc_pose_name = 'pose_graph'
     proc_optflow_name = 'opt_flow_manager_node'
+    proc_featureTracker_name = 'feature_tracker'
+    proc_featureHandling_name = 'feature_tracking'
 
     # since we don't know the PIDs beforehand check names of running processes
     for proc in psutil.process_iter():
@@ -32,10 +34,13 @@ def systemLog():
         elif (proc.name() == proc_pose_name):
             proc_pose = proc
         elif (proc.name() == proc_optflow_name):
-            proc_optflow = proc
+            proc_featureHandling = proc
+        elif (proc.name() == proc_featureTracker_name):
+            proc_featureHandling = proc
 
     config = {}
     # load ROS data
+    algo = rospy.get_param('~algo', 'default_value')
     config_file = rospy.get_param('~config_file', 'default_value')
     with open(config_file) as inf:
         line_words = (line.split(':') for line in inf)
@@ -45,9 +50,11 @@ def systemLog():
             except:
                 rospy.logwarn("could not read: " + line[0])
 
+    if (config['loop_closure'] == '1'):
+        algo = algo + "_lc"
 
-    results_path = (config['output_path'] + config['platform'] + "/" +  config['algo'] + 
-                    "/" + config['platform'] + "_" + config['algo'] + "_" + 
+    results_path = (config['output_path'] + config['platform'] + "/" + algo + 
+                    "/" + config['platform'] + "_" + algo + "_" + 
                     config['dataset'])
     #     ____ ______     __  ____       _   _   _                 
     #    / ___/ ___\ \   / / / ___|  ___| |_| |_(_)_ __   __ _ ___ 
@@ -59,7 +66,8 @@ def systemLog():
     mem_out_file_name = results_path + "/log_mem.csv"
 
     # this is the header line of the outputed .csv file
-    fields = [proc_vins_name, proc_pose_name, proc_optflow_name] 
+    timestamp = 'timestamp'
+    fields = [timestamp, proc_vins_name, proc_pose_name, proc_featureHandling_name] 
 
     with open(cpu_out_file_name, 'w') as csvfile: 
         # creating a csv dict writer object 
@@ -75,15 +83,20 @@ def systemLog():
         writer.writeheader() 
         csvfile.close()
 
+    # get starting time
+    start_time = rospy.get_rostime()
     # spin in this rate
     while not rospy.is_shutdown():
-        cpu_dict = {proc_vins_name: proc_vins.cpu_percent(),
+        time_now = rospy.get_rostime()
+        cpu_dict = {timestamp: time_now,
+                    proc_vins_name: proc_vins.cpu_percent(),
                     proc_pose_name: proc_pose.cpu_percent(),
-                    proc_optflow_name: proc_optflow.cpu_percent()}
+                    proc_featureHandling_name: proc_featureHandling.cpu_percent()}
 
-        mem_dict = {proc_vins_name: proc_vins.memory_percent(),
+        mem_dict = {timestamp: time_now,
+                    proc_vins_name: proc_vins.memory_percent(),
                     proc_pose_name: proc_pose.memory_percent(),
-                    proc_optflow_name: proc_optflow.memory_percent()}
+                    proc_featureHandling_name: proc_featureHandling.memory_percent()}
 
         # call logging here
         with open(cpu_out_file_name, 'a') as csvfile: 
