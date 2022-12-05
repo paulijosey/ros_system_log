@@ -41,6 +41,8 @@ def systemLog():
     config = {}
     # load ROS data
     algo = rospy.get_param('~algo', 'default_value')
+    feature_num = 0
+
     config_file = rospy.get_param('~config_file', 'default_value')
     with open(config_file) as inf:
         line_words = (line.split(':') for line in inf)
@@ -50,11 +52,19 @@ def systemLog():
             except:
                 rospy.logwarn("could not read: " + line[0])
 
+    if (algo == 'vins_mono'):
+        feature_num = config['max_cnt']
+    else:
+        feature_num = config['feature_tracks_max_num']
+
     if (config['loop_closure'] == '1'):
         algo = algo + "_lc"
 
-    results_path = (config['output_path'] + config['platform'] + "/" + algo + 
-                    "/" + config['platform'] + "_" + algo + "_" + 
+    freq = config['freq']
+
+    results_path = (config['output_path'] + config['platform'] + "/" + algo + "_freq" + freq + 
+                    "_features" + feature_num + "/" + config['platform'] + "_" + algo + 
+                    "_freq" + freq + "_features" + feature_num + "_" +
                     config['dataset'])
     #     ____ ______     __  ____       _   _   _                 
     #    / ___/ ___\ \   / / / ___|  ___| |_| |_(_)_ __   __ _ ___ 
