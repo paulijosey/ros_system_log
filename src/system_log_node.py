@@ -3,6 +3,7 @@
 import rospy
 import psutil
 import csv 
+from pathlib import Path
 
 #    ____            _                   _                      _             
 #   / ___| _   _ ___| |_ ___ _ __ ___   | |    ___   __ _  __ _(_)_ __   __ _ 
@@ -66,6 +67,10 @@ def systemLog():
                     "_features" + feature_num + "/" + config['platform'] + "_" + algo + 
                     "_freq" + freq + "_features" + feature_num + "_" +
                     config['dataset'])
+
+    # mkdir -p for python ...
+    Path(results_path).mkdir(parents=True, exist_ok=True)
+
     #     ____ ______     __  ____       _   _   _                 
     #    / ___/ ___\ \   / / / ___|  ___| |_| |_(_)_ __   __ _ ___ 
     #   | |   \___ \\ \ / /  \___ \ / _ \ __| __| | '_ \ / _` / __|
