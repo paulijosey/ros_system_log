@@ -62,10 +62,11 @@ def systemLog():
         algo = algo + "_lc"
 
     freq = config['freq']
+    pose_freq = config['pose_graph_freq']
 
     results_path = (config['output_path'] + config['platform'] + "/" + algo + "_freq" + freq + 
-                    "_features" + feature_num + "/" + config['platform'] + "_" + algo + 
-                    "_freq" + freq + "_features" + feature_num + "_" +
+                    "_posefreq" + pose_freq + "_features" + feature_num + "/" + config['platform'] + "_" + algo + 
+                    "_freq" + freq + "_posefreq" + pose_freq + "_features" + feature_num + "_" +
                     config['dataset'])
 
     # mkdir -p for python ...
